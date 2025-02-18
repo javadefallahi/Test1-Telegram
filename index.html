@@ -35,38 +35,62 @@
         }
         #tapButton:active {
             background: #ff6b81;
-            transform: scale(0.95);
+            animation: pulse 0.2s;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        #resetButton {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            background: #3498db;
+            color: white;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
     <div id="counter">0</div>
-    <button id="tapButton">Hamster Belly :)</button>
+    <button id="tapButton">Tap Me!</button>
+    <button id="resetButton">Reset</button>
 
     <script>
         // JavaScript to handle the counter
         let count = 0;
         const counterElement = document.getElementById('counter');
         const tapButton = document.getElementById('tapButton');
+        const resetButton = document.getElementById('resetButton');
 
+        // Increment counter on button tap
         tapButton.addEventListener('click', () => {
-            count++; // Increment the counter
-            counterElement.textContent = count; // Update the counter display
+            count++;
+            counterElement.textContent = count;
         });
+
+        // Reset counter
+        resetButton.addEventListener('click', () => {
+            count = 0;
+            counterElement.textContent = count;
+        });
+
+        // Save high score using Telegram Web App API
         const tg = window.Telegram.WebApp;
 
-    function saveHighScore() {
-        const data = {
-            score: count, // Send the current counter value
-            user_id: tg.initDataUnsafe.user.id, // Include the user's Telegram ID
-        };
-        tg.sendData(JSON.stringify(data)); // Send data to the bot
-    }
+        function saveHighScore() {
+            const data = {
+                score: count,
+                user_id: tg.initDataUnsafe.user.id,
+            };
+            tg.sendData(JSON.stringify(data));
+        }
 
-    // Listen for the "beforeunload" event to save the score when the mini-app closes
-    window.addEventListener('beforeunload', saveHighScore);
-        
+        // Save score when the mini-app closes
+        window.addEventListener('beforeunload', saveHighScore);
     </script>
-
 </body>
 </html>
