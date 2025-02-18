@@ -53,6 +53,20 @@
             count++; // Increment the counter
             counterElement.textContent = count; // Update the counter display
         });
+        const tg = window.Telegram.WebApp;
+
+    function saveHighScore() {
+        const data = {
+            score: count, // Send the current counter value
+            user_id: tg.initDataUnsafe.user.id, // Include the user's Telegram ID
+        };
+        tg.sendData(JSON.stringify(data)); // Send data to the bot
+    }
+
+    // Listen for the "beforeunload" event to save the score when the mini-app closes
+    window.addEventListener('beforeunload', saveHighScore);
+        
     </script>
+
 </body>
 </html>
