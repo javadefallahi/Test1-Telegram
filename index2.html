@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tap Counter Game</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        #counter {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+        }
+        #tapButton {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: #ff4757;
+            color: white;
+            font-size: 1.5rem;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            transition: background 0.2s;
+        }
+        #tapButton:active {
+            background: #ff6b81;
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <div id="counter">0</div>
+    <button id="tapButton">Tap Me!</button>
+
+    <script>
+        // JavaScript to handle the counter
+        let count = 0;
+        const counterElement = document.getElementById('counter');
+        const tapButton = document.getElementById('tapButton');
+
+        tapButton.addEventListener('click', () => {
+            count++; // Increment the counter
+            counterElement.textContent = count; // Update the counter display
+        });
+    </script>
+</body>
+</html>
