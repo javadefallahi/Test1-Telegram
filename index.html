@@ -1,96 +1,136 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa"> <!-- Persian language support -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tap Counter Game</title>
+    <title>چت با ربات LLM</title> <!-- Title in Persian -->
     <style>
         body {
-            margin: 0;
+            font-family: Tahoma, sans-serif; /* Persian-friendly font */
+            background-color: #f7f7f7;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            background: #1a1a1a;
-            color: white;
-            font-family: Arial, sans-serif;
-            text-align: center;
+            height: 100vh;
+            margin: 0;
+            direction: rtl; /* Right to Left direction for Persian */
         }
-        #counter {
-            font-size: 3rem;
-            margin-bottom: 2rem;
+        .chat-container {
+            width: 100%;
+            max-width: 600px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
         }
-        #tapButton {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            background: #ff4757;
+        #chat-box {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            max-height: 400px;
+        }
+        .message {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+        .user-msg {
+            background-color: #cce5ff;
+            align-self: flex-end;
+        }
+        .bot-msg {
+            background-color: #e6e6e6;
+            align-self: flex-start;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            width: calc(100% - 100px);
+            margin-right: 10px;
+            direction: rtl; /* Right to Left input */
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
             color: white;
-            font-size: 1.5rem;
             border: none;
+            border-radius: 20px;
             cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-            transition: background 0.2s;
         }
-        #tapButton:active {
-            background: #ff6b81;
-            animation: pulse 0.2s;
+        button:hover {
+            background-color: #0056b3;
         }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-        #resetButton {
-            margin-top: 1rem;
-            padding: 0.5rem 1rem;
-            font-size: 1rem;
-            border: none;
-            border-radius: 5px;
-            background: #3498db;
-            color: white;
-            cursor: pointer;
+        .input-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
     </style>
 </head>
 <body>
-    <div id="counter">0</div>
-    <button id="tapButton">Hamster Belly</button>
-    <button id="resetButton">Fuck it, Lets start again :)</button>
+    <div class="chat-container">
+        <div id="chat-box">
+            <!-- Messages will appear here -->
+        </div>
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="پیامی وارد کنید..." />
+            <button onclick="sendMessage()">ارسال</button>
+        </div>
+    </div>
 
     <script>
-        // JavaScript to handle the counter
-        let count = 0;
-        const counterElement = document.getElementById('counter');
-        const tapButton = document.getElementById('tapButton');
-        const resetButton = document.getElementById('resetButton');
+        const backendAPIUrl = 'https://your-backend-url.com/ask'; // Replace with your backend URL
 
-        // Increment counter on button tap
-        tapButton.addEventListener('click', () => {
-            count++;
-            counterElement.textContent = count;
+        // Send message when "Enter" key is pressed
+        document.getElementById('user-input').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
         });
 
-        // Reset counter
-        resetButton.addEventListener('click', () => {
-            count = 0;
-            counterElement.textContent = count;
-        });
+        function sendMessage() {
+            const userInput = document.getElementById('user-input').value;
+            if (userInput.trim() === "") return;
 
-        // Save high score using Telegram Web App API
-        const tg = window.Telegram.WebApp;
+            // Display the user's message in the chat box
+            displayMessage(userInput, 'user-msg');
 
-        function saveHighScore() {
-            const data = {
-                score: count,
-                user_id: tg.initDataUnsafe.user.id,
-            };
-            tg.sendData(JSON.stringify(data));
+            // Clear the input field
+            document.getElementById('user-input').value = "";
+
+            // Send the message to the backend
+            fetch(backendAPIUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    prompt: userInput, // Send the message to your backend
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const botResponse = data.response || 'متاسفم، پاسخ از ربات نیامده است.';
+                displayMessage(botResponse, 'bot-msg');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                displayMessage('Error: Could not connect to the LLM. Please try again later.', 'bot-msg');
+            });
         }
 
-        // Save score when the mini-app closes
-        window.addEventListener('beforeunload', saveHighScore);
+        function displayMessage(message, className) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', className);
+            messageElement.textContent = message;
+            document.getElementById('chat-box').appendChild(messageElement);
+            document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
+        }
     </script>
 </body>
 </html>
