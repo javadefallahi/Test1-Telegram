@@ -1,136 +1,234 @@
 <!DOCTYPE html>
-<html lang="fa"> <!-- Persian language support -->
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>چت با ربات LLM</title> <!-- Title in Persian -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"
+    />
+    <title>ToyBox 3D – Mobile</title>
+
+    <!-- Google <model-viewer> web component -->
+    <script
+      type="module"
+      src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
+    ></script>
+
     <style>
-        body {
-            font-family: Tahoma, sans-serif; /* Persian-friendly font */
-            background-color: #f7f7f7;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            direction: rtl; /* Right to Left direction for Persian */
+      /* ——— Design tokens ——— */
+      :root {
+        --brand: #6366f1;
+        --bg: #f0f2f7;
+        --card: #ffffff;
+        --radius: 1rem;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1a1a1a;
+          --card: #2a2a2a;
+          --brand: #8183ff;
+          color-scheme: dark;
+          color: #f4f4f4;
         }
-        .chat-container {
-            width: 100%;
-            max-width: 600px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-        }
-        #chat-box {
-            flex-grow: 1;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            max-height: 400px;
-        }
-        .message {
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 10px;
-            max-width: 80%;
-        }
-        .user-msg {
-            background-color: #cce5ff;
-            align-self: flex-end;
-        }
-        .bot-msg {
-            background-color: #e6e6e6;
-            align-self: flex-start;
-        }
-        input[type="text"] {
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 20px;
-            border: 1px solid #ddd;
-            width: calc(100% - 100px);
-            margin-right: 10px;
-            direction: rtl; /* Right to Left input */
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .input-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+      }
+
+      /* ——— Reset & helpers ——— */
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      /* ——— Layout wrapper ——— */
+      #app {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 0.75rem;
+      }
+
+      /* ——— 3‑D viewer ——— */
+      #viewer-container {
+        background: var(--card);
+        border-radius: var(--radius);
+        overflow: hidden;
+        position: relative;
+        width: 100%;
+      }
+
+      model-viewer {
+        width: 100%;
+        height: 60vh; /* keep a comfortable portion of phone screen */
+        --poster-color: var(--bg);
+      }
+
+      #toyOverlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 80px;
+        height: 80px;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        display: none;
+      }
+
+      /* ——— Controls ——— */
+      #controls {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      label {
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      select,
+      input[type="color"],
+      button,
+      a.checkout {
+        font: inherit;
+        border: 2px solid var(--brand);
+        background: var(--card);
+        padding: 0.55rem 0.8rem;
+        border-radius: 0.75rem;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      button:hover,
+      select:hover,
+      input[type="color"]:hover,
+      a.checkout:hover {
+        background: var(--brand);
+        color: #fff;
+      }
+
+      #toy-store {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      #toy-store button {
+        flex: 1 1 45%; /* two buttons per row on small screens */
+      }
+
+      a.checkout {
+        text-align: center;
+        text-decoration: none;
+        font-weight: 700;
+        margin-top: 0.5rem;
+      }
     </style>
-</head>
-<body>
-    <div class="chat-container">
-        <div id="chat-box">
-            <!-- Messages will appear here -->
-        </div>
-        <div class="input-container">
-            <input type="text" id="user-input" placeholder="پیامی وارد کنید..." />
-            <button onclick="sendMessage()">ارسال</button>
-        </div>
+  </head>
+  <body>
+    <div id="app">
+      <!-- ——— 3D Viewer ——— -->
+      <div id="viewer-container">
+        <model-viewer
+          id="modelViewer"
+          src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+          alt="3D character"
+          camera-controls
+          auto-rotate
+          shadow-intensity="1"
+          ar
+        ></model-viewer>
+        <img id="toyOverlay" src="" alt="Toy overlay" />
+      </div>
+
+      <!-- ——— UI Controls ——— -->
+      <div id="controls">
+        <!-- ① Character selection -->
+        <label for="modelSelect">Character</label>
+        <select id="modelSelect">
+          <option value="astro">Astronaut</option>
+          <option value="robot">Expressive Robot</option>
+        </select>
+
+        <!-- ② Background color picker -->
+        <label for="bgPicker">Background</label>
+        <input type="color" id="bgPicker" value="#f0f2f7" />
+
+        <!-- ③ Toy store -->
+        <label>Toys</label>
+        <div id="toy-store"></div>
+
+        <!-- ④ Checkout -->
+        <a class="checkout" href="https://www.zarinpal.com/" target="_blank"
+          >Checkout ↗</a
+        >
+      </div>
     </div>
 
     <script>
-        const backendAPIUrl = 'https://your-backend-url.com/ask'; // Replace with your backend URL
+      /* ——— Data ——— */
+      const MODELS = {
+        astro: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
+        robot: "https://modelviewer.dev/shared-assets/models/RobotExpressive.glb",
+      };
 
-        // Send message when "Enter" key is pressed
-        document.getElementById('user-input').addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
+      const TOYS = [
+        {
+          id: "star",
+          name: "Golden Star",
+          preview:
+            "https://raw.githubusercontent.com/iconic/open-iconic/master/png/star-8x.png",
+        },
+        {
+          id: "ball",
+          name: "Bouncy Ball",
+          preview: "https://i.imgur.com/NtWPrPs.png",
+        },
+        {
+          id: "hat",
+          name: "Wizard Hat",
+          preview: "https://i.imgur.com/xyobkOD.png",
+        },
+      ];
+
+      /* ——— Element refs ——— */
+      const modelViewer = document.getElementById("modelViewer");
+      const modelSelect = document.getElementById("modelSelect");
+      const bgPicker = document.getElementById("bgPicker");
+      const viewerContainer = document.getElementById("viewer-container");
+      const toyStore = document.getElementById("toy-store");
+      const toyOverlay = document.getElementById("toyOverlay");
+
+      /* ——— Init toy buttons ——— */
+      TOYS.forEach((toy) => {
+        const btn = document.createElement("button");
+        btn.textContent = toy.name;
+        btn.addEventListener("click", () => {
+          toyOverlay.src = toy.preview;
+          toyOverlay.style.display = "block";
         });
+        toyStore.appendChild(btn);
+      });
 
-        function sendMessage() {
-            const userInput = document.getElementById('user-input').value;
-            if (userInput.trim() === "") return;
+      /* ——— Listeners ——— */
+      modelSelect.addEventListener("change", (e) => {
+        const key = e.target.value;
+        modelViewer.src = MODELS[key];
+      });
 
-            // Display the user's message in the chat box
-            displayMessage(userInput, 'user-msg');
-
-            // Clear the input field
-            document.getElementById('user-input').value = "";
-
-            // Send the message to the backend
-            fetch(backendAPIUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    prompt: userInput, // Send the message to your backend
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                const botResponse = data.response || 'متاسفم، پاسخ از ربات نیامده است.';
-                displayMessage(botResponse, 'bot-msg');
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                displayMessage('متاسفانه پاسخ از چت جی پی تی نیامده است. به پشتیبانی خبر بدهید', 'bot-msg');
-            });
-        }
-
-        function displayMessage(message, className) {
-            const messageElement = document.createElement('div');
-            messageElement.classList.add('message', className);
-            messageElement.textContent = message;
-            document.getElementById('chat-box').appendChild(messageElement);
-            document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
-        }
+      bgPicker.addEventListener("input", (e) => {
+        viewerContainer.style.background = e.target.value;
+      });
     </script>
-</body>
+  </body>
 </html>
