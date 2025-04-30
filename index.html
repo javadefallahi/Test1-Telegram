@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"
     />
-    <title>ToyBox 3D – Mobile</title>
+    <title>MyPet3D – مینی‌اپ</title>
 
     <!-- Google <model-viewer> web component -->
     <script
@@ -69,7 +69,7 @@
 
       model-viewer {
         width: 100%;
-        height: 60vh; /* keep a comfortable portion of phone screen */
+        height: 60vh; /* takes up healthy portion of phone screen */
         --poster-color: var(--bg);
       }
 
@@ -133,6 +133,64 @@
         font-weight: 700;
         margin-top: 0.5rem;
       }
+
+      /* ——— Modal ——— */
+      #bmModal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.55);
+        z-index: 1000;
+        padding: 1rem;
+      }
+
+      #bmModal.active {
+        display: flex;
+      }
+
+      .modal-card {
+        background: var(--card);
+        border-radius: var(--radius);
+        max-width: 600px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 1.25rem 1rem;
+        direction: rtl; /* Persian direction */
+      }
+
+      .modal-card h2 {
+        margin-top: 0;
+        font-size: 1.25rem;
+        text-align: center;
+      }
+
+      .modal-card h3 {
+        margin: 0.75rem 0 0.25rem;
+        font-size: 1.05rem;
+        color: var(--brand);
+      }
+
+      .modal-card ul {
+        margin: 0 0 0.75rem 0;
+        padding-right: 1rem;
+        list-style: "• ";
+      }
+
+      .close-btn {
+        display: block;
+        width: 100%;
+        border: none;
+        margin-top: 0.5rem;
+        padding: 0.55rem;
+        background: var(--brand);
+        color: #fff;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
@@ -154,24 +212,105 @@
       <!-- ——— UI Controls ——— -->
       <div id="controls">
         <!-- ① Character selection -->
-        <label for="modelSelect">Character</label>
+        <label for="modelSelect">حیوان</label>
         <select id="modelSelect">
-          <option value="astro">Astronaut</option>
-          <option value="robot">Expressive Robot</option>
+          <option value="astro">سگ فضانورد</option>
+          <option value="robot">گربه رباتیک</option>
         </select>
 
         <!-- ② Background color picker -->
-        <label for="bgPicker">Background</label>
+        <label for="bgPicker">پس‌زمینه</label>
         <input type="color" id="bgPicker" value="#f0f2f7" />
 
         <!-- ③ Toy store -->
-        <label>Toys</label>
+        <label>اسباب‌بازی‌ها و پوشاک</label>
         <div id="toy-store"></div>
 
         <!-- ④ Checkout -->
         <a class="checkout" href="https://www.zarinpal.com/" target="_blank"
-          >Checkout ↗</a
+          >خرید ↗</a
         >
+
+        <!-- ⑤ Business Model button -->
+        <button id="bmBtn">مدل کسب‌وکار</button>
+      </div>
+    </div>
+
+    <!-- ——— Modal ——— -->
+    <div id="bmModal">
+      <div class="modal-card">
+        <h2>🌟 مدل کسب‌وکار شهودی «MyPet3D»</h2>
+
+        <h3>🐾 مشکل اصلی</h3>
+        <ul>
+          <li>خرید آنلاین لوازم حیوانات فاقد تعامل ملموس است و دربارهٔ تناسب، راحتی و سبک اطمینان ایجاد نمی‌کند.</li>
+          <li>تجربهٔ عمومی، مشارکت مشتری را کاهش می‌دهد و ارتباط شخصی و احساسی مدنظر صاحبان حیوان را برآورده نمی‌کند.</li>
+          <li>نرخ بازگشت بالا به‌دلیل عدم انطباق سایز، راحتی و انتظارات.</li>
+        </ul>
+
+        <h3>🎯 بخش‌های مشتری</h3>
+        <ul>
+          <li>صاحبان حیوانات خانگی ۱۸ تا ۴۵ سال که حیوان را عضو خانواده می‌دانند و به تجربهٔ خرید شخصی و احساسی اهمیت می‌دهند.</li>
+          <li>نسل Z و هزاره‌ای‌ها که ارزش شخصی‌سازی دیجیتال و خرید تعاملی آنلاین را می‌شناسند.</li>
+          <li>برندهای لوازم حیوانات که به ابزارهای بازاریابی دیجیتال تعاملی نیاز دارند.</li>
+          <li>کاربران تلگرام و مخاطبان موبایل‌محور و آشنا با فناوری.</li>
+        </ul>
+
+        <h3>✨ پیشنهاد ارزش منحصربه‌فرد</h3>
+        <ul>
+          <li>«ارتباط احساسی را تجربه کن: ببین، شخصی‌سازی کن و با اطمینان بخر.»</li>
+          <li>تجربهٔ سه‌بعدی بسیار شخصی و تعاملی که احساسات را درگیر می‌کند.</li>
+          <li>عدم قطعیت خرید را با شبیه‌سازی دقیق تناسب، راحتی و سبک کاهش می‌دهد.</li>
+        </ul>
+
+        <h3>🚀 راهکارهای نوآورانه</h3>
+        <ul>
+          <li>تصویرسازی سه‌بعدی واقع‌گرایانه با امکان «پرؤ مجازی» مبتنی بر اندازهٔ واقعی حیوان.</li>
+          <li>موتور شخصی‌سازی شامل طرح‌ها، رنگ‌ها و نوشته‌های سفارشی.</li>
+          <li>پیشنهادهای هوشمند مبتنی بر هوش مصنوعی طبق پروفایل حیوان و سابقهٔ خرید.</li>
+          <li>شاخص‌های دوام و کیفیت درون پیش‌نمایش محصول.</li>
+        </ul>
+
+        <h3>📢 کانال‌ها</h3>
+        <ul>
+          <li>مینی‌اپ استور تلگرام برای ادغام بی‌دردسر در عادت‌های پیام‌رسانی روزانه.</li>
+          <li>اینستاگرام و تیک‌تاک با استفاده از اینفلوئنسرهای حیوانات.</li>
+          <li>شراکت راهبردی با برندهای لوازم حیوانات و فروشگاه‌های فیزیکی (کد QR).</li>
+          <li>افزونه‌های Shopify و WooCommerce برای توسعهٔ اکوسیستم تجارت الکترونیک.</li>
+        </ul>
+
+        <h3>💰 جریان‌های درآمدی</h3>
+        <ul>
+          <li>کمیسیون از فروش لوازم حیوانات.</li>
+          <li>طرح‌های سه‌بعدی شخصی ممتاز و آیتم‌های مجازی انحصاری.</li>
+          <li>جایگاه‌های تبلیغاتی و تجربه‌های تعاملی برای برندها.</li>
+          <li>اشتراک برای خریداران پرتکرار با دسترسی زودهنگام، تخفیف و پیش‌نمایش اختصاصی.</li>
+        </ul>
+
+        <h3>📌 منابع کلیدی</h3>
+        <ul>
+          <li>زیرساخت پیشرفتهٔ مدل‌سازی سه‌بعدی و واقعیت افزوده.</li>
+          <li>الگوریتم‌های هوش مصنوعی برای شخصی‌سازی و بینش مشتری.</li>
+          <li>اتصال به درگاه پرداخت محلی (زرین‌پال) برای تراکنش بدون اصطکاک.</li>
+          <li>تیم فناوری و طراحی ماهر برای نوآوری و پشتیبانی مداوم.</li>
+        </ul>
+
+        <h3>📊 شاخص‌های کلیدی</h3>
+        <ul>
+          <li>نرخ تبدیل پیش‌نمایش تعاملی به خرید.</li>
+          <li>مدت و دفعات تعامل مشتری.</li>
+          <li>نرخ بازگشت سفارش‌ها و نتایج نظرسنجی رضایت مشتری.</li>
+          <li>نرخ اشتراک‌گذاری در شبکه‌های اجتماعی و حجم محتوای تولیدشده توسط کاربر.</li>
+        </ul>
+
+        <h3>🌟 برتری ناعادلانه</h3>
+        <ul>
+          <li>برتری پیشگام در ارائهٔ تجربه سه‌بعدی کاملاً تعاملی و احساسی در مینی‌اپ تلگرام.</li>
+          <li>ادغام عمیق شخصی‌سازی و جذابیت احساسی برای ایجاد پیوند قوی با مشتری.</li>
+          <li>راهکارهای پرداخت بومی و برندینگ متناسب با فرهنگ بازار ایران.</li>
+        </ul>
+
+        <button class="close-btn" id="closeModal">بستن</button>
       </div>
     </div>
 
@@ -185,18 +324,18 @@
       const TOYS = [
         {
           id: "star",
-          name: "Golden Star",
+          name: "ستاره طلایی",
           preview:
             "https://raw.githubusercontent.com/iconic/open-iconic/master/png/star-8x.png",
         },
         {
           id: "ball",
-          name: "Bouncy Ball",
+          name: "توپ فنری",
           preview: "https://i.imgur.com/NtWPrPs.png",
         },
         {
           id: "hat",
-          name: "Wizard Hat",
+          name: "کلاه جادوگر",
           preview: "https://i.imgur.com/xyobkOD.png",
         },
       ];
@@ -208,6 +347,9 @@
       const viewerContainer = document.getElementById("viewer-container");
       const toyStore = document.getElementById("toy-store");
       const toyOverlay = document.getElementById("toyOverlay");
+      const bmModal = document.getElementById("bmModal");
+      const bmBtn = document.getElementById("bmBtn");
+      const closeModal = document.getElementById("closeModal");
 
       /* ——— Init toy buttons ——— */
       TOYS.forEach((toy) => {
@@ -228,6 +370,23 @@
 
       bgPicker.addEventListener("input", (e) => {
         viewerContainer.style.background = e.target.value;
+      });
+
+      bmBtn.addEventListener("click", () => {
+        bmModal.classList.add("active");
+        document.body.style.overflow = "hidden";
+      });
+
+      closeModal.addEventListener("click", () => {
+        bmModal.classList.remove("active");
+        document.body.style.overflow = "auto";
+      });
+
+      // Close modal when tapping outside card
+      bmModal.addEventListener("click", (e) => {
+        if (e.target === bmModal) {
+          closeModal.click();
+        }
       });
     </script>
   </body>
