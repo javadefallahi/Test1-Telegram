@@ -1,87 +1,253 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <title>سقوط – هزارتوی پول</title>
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet" />
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Vazirmatn',sans-serif;background:linear-gradient(120deg,#fdfcfb 0%,#e2d1c3 100%);display:flex;justify-content:center;align-items:flex-start;padding:40px 10px;color:#222}
-    #game{width:100%;max-width:640px;background:#fff;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.08);padding:32px;animation:fadeIn .6s ease}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
-    h1{font-size:1.5rem;margin-bottom:24px;text-align:center}
-    .scene-text{margin-bottom:24px;line-height:1.8}
-    .choice{display:block;width:100%;background:#ffca28;border:none;border-radius:12px;padding:12px 16px;margin-bottom:12px;font-size:1rem;cursor:pointer;transition:background .2s}
-    .choice:hover{background:#ffc107}
-    .hidden{display:none}
-    #start-form{display:flex;flex-direction:column;gap:12px;margin-top:12px}
-    #start-form input,#start-form select{padding:10px;border:1px solid #ccc;border-radius:8px;font-family:'Vazirmatn',sans-serif}
-    #restart{margin-top:24px;background:#26c6da}
+    /* Font (Koodak – may rely on local install) */
+    @font-face {
+      font-family: 'BKoodak';
+      src: local('B Koodak'), local('BKoodak');
+    }
+    body {
+      font-family: 'BKoodak', Tahoma, sans-serif;
+      background: linear-gradient(135deg,#fdfcfb 0%,#e7e4df 100%);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      color:#222;
+    }
+    #game {
+      background:#fff;
+      width:100%;
+      max-width:680px;
+      box-shadow:0 8px 24px rgba(0,0,0,.08);
+      border-radius:16px;
+      padding:2rem;
+      animation:fadeIn .6s ease;
+    }
+    h1{font-size:1.4rem;margin-bottom:1rem;text-align:center}
+    p{margin-bottom:1.2rem;line-height:2rem}
+    button{
+      width:100%;
+      margin:.4rem 0;
+      padding:.9rem 1rem;
+      font-family:'BKoodak',Tahoma,sans-serif;
+      font-size:1rem;
+      border:none;
+      border-radius:12px;
+      background:#ffce00;
+      color:#333;
+      cursor:pointer;
+      transition:all .2s;
+    }
+    button:hover{box-shadow:0 4px 8px rgba(0,0,0,.15)}
+    input,select{
+      width:100%;
+      padding:.8rem 1rem;
+      margin-bottom:1rem;
+      border-radius:10px;
+      border:1px solid #ccc;
+      font-family:'BKoodak',Tahoma,sans-serif;
+    }
+    @keyframes fadeIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
   </style>
 </head>
 <body>
-  <div id="game">
-    <h1>سقوط – هزارتوی پول</h1>
-    <div id="scene" class="scene-text"></div>
-    <div id="choices"></div>
-    <button id="restart" class="choice hidden">شروع دوباره</button>
-  </div>
-
+  <div id="game"></div>
   <script>
-    // ----- player state -----
-    const player={age:null,gender:null,impulsivity:0,morality:0,creativity:0,choices:[]};
-
-    // ----- story data (abbreviated for brevity) -----
-    const scenes={
-      start:{text:`سن و جنسیت خود را وارد کنید و آماده شوید…`,form:true},
-      // ... (existing Farsi scenes from previous version go here)
-      END_SPARK:{text:`\n✨ پایان: جرقه!\n\nشما از امکانات خود برای ایجاد ارزش استفاده کردید و دیگران را الهام بخشید.`,choices:[]},
-      END_MIRROR:{text:`\n🔍 پایان: آینه!\n\nپول را کنار گذاشتید اما خود را عمیق‌تر شناختید.`,choices:[]},
-      END_BURN:{text:`\n🔥 پایان: سوختن!\n\nپول رفت ولی درسی ماندگار گرفتید.`,choices:[]},
-      END_GHOST:{text:`\n👻 پایان: روح!\n\nتردید باعث شد هیچ کاری نکنید و فرصت از دست رفت.`,choices:[]},
-      END_MASK:{text:`\n🎭 پایان: نقاب!\n\nظاهر را نجات دادید اما حقیقت را پنهان کردید.`,choices:[]},
+    /* ===== Data Structures ===== */
+    const player = {
+      age:null,
+      gender:null,
+      impulsivity:0,
+      morality:0,
+      creativity:0,
+      choices:[]
     };
 
-    // ----- engine -----
-    const sceneEl=document.getElementById('scene');
-    const choicesEl=document.getElementById('choices');
-    const restartBtn=document.getElementById('restart');
+    const scenes = {
+      /** 1 **/ 'S1': {
+        text:`در آپارتمانی خالی از خواب بیدار می‌شوی؛ چمدانی حاوی یک میلیون ریال کنارت است. هیچ یادداشتی نیست.`,
+        choices:[
+          {text:'چمدان را برداشته و فوراً می‌روم', next:'S2C', effects:{impulsivity:2}},
+          {text:'می‌مانم و صبر می‌کنم؛ شاید کسی بیاید', next:'S2A', effects:{morality:1}},
+          {text:'بدون برداشتن پول برای کمک می‌روم', next:'S2B', effects:{creativity:1}}
+        ]
+      },
+      /** 2A **/ 'S2A': {
+        text:`چند ساعت می‌گذرد و خبری نیست. گرسنگی سراغت آمده است.`,
+        choices:[
+          {text:'فقط با یک اسکناس بیرون می‌روم', next:'S3C', effects:{morality:1}},
+          {text:'همه پول را برمی‌دارم؛ کافی صبر کردم', next:'S3A', effects:{impulsivity:1}},
+          {text:'حس می‌کنم پول نفرین‌شده است و آن را می‌سوزانم', next:'S3B', effects:{creativity:1}}
+        ]
+      },
+      /** 2B **/ 'S2B': {
+        text:`به کیوسک سر کوچه می‌رسی. فروشنده می‌گوید: "نگه‌اش دار ولی عاقل باش."`,
+        choices:[
+          {text:'برمی‌گردم و چمدان را مخفی می‌کنم', next:'S3B', effects:{impulsivity:1}},
+          {text:'نیمی از پول را برمی‌دارم', next:'S3A', effects:{morality:1}},
+          {text:'ناشناس به پلیس گزارش می‌دهم', next:'S3D', effects:{morality:2}}
+        ]
+      },
+      /** 2C **/ 'S2C': {
+        text:`به خیابان می‌آیی. پول در کوله است و عرق بر پیشانی‌ات.`,
+        choices:[
+          {text:'کالا می‌خرم و در خیابان می‌فروشم', next:'S3A', effects:{creativity:2}},
+          {text:'مقداری را بین غریبه‌ها پخش می‌کنم', next:'S3C', effects:{morality:2}},
+          {text:'هتل می‌گیرم و پنهان می‌شوم', next:'S3D', effects:{impulsivity:1}}
+        ]
+      },
+      /** 3A **/ 'S3A': {
+        text:`تصمیم می‌گیری با پول کاری کنی: شاید کسب‌وکاری کوچک یا خرید خوش‌شانس.`,
+        choices:[
+          {text:'کسب‌وکار خیابانی راه‌اندازی می‌کنم', next:'S4A', effects:{creativity:2}},
+          {text:'همه‌اش را قمار می‌کنم', next:'S4C', effects:{impulsivity:3}},
+          {text:'چند نفر را برای ساخت چیزی استخدام می‌کنم', next:'S4B', effects:{morality:1, creativity:1}}
+        ]
+      },
+      /** 3B **/ 'S3B': {
+        text:`پول را پنهان یا نابود می‌کنی؛ بوی خطر می‌دهد.`,
+        choices:[
+          {text:'آرام آرام می‌سوزانمش', next:'S4D', effects:{morality:2}},
+          {text:'با یادداشتی در خیابان رها می‌کنم', next:'S4C', effects:{morality:1, creativity:1}},
+          {text:'به خیریه ناشناس اهدا می‌کنم', next:'S4E', effects:{morality:3}}
+        ]
+      },
+      /** 3C **/ 'S3C': {
+        text:`پول را میان مردم پخش می‌کنی و واکنش‌ها را ثبت می‌کنی.`,
+        choices:[
+          {text:'وبلاگ تجربیاتم را می‌نویسم', next:'S4E', effects:{creativity:2}},
+          {text:'ویدئو مستند می‌گیرم', next:'S4F', effects:{creativity:2}},
+          {text:'افرادی را که پول دادم دنبال می‌کنم', next:'S4A', effects:{morality:1, creativity:1}}
+        ]
+      },
+      /** 3D **/ 'S3D': {
+        text:`در اتاق هتل پنهان می‌شوی. افکار متناقض ذهنت را پر می‌کند.`,
+        choices:[
+          {text:'فراموش می‌کنم و عادی زندگی می‌کنم', next:'S4D', effects:{morality:1}},
+          {text:'۲۴ ساعت به خودم猶 فرصت می‌دهم', next:'S4F', effects:{impulsivity:1}},
+          {text:'دنبال منبع پول می‌گردم', next:'S4B', effects:{creativity:2}}
+        ]
+      },
+      /** 4A **/ 'S4A': {
+        text:`اقدام تو نتیجه می‌دهد؛ مردم توجه نشان می‌دهند.`,
+        choices:[
+          {text:'ادامه می‌دهم و چیزی واقعی می‌سازم', next:'END_SPARK', effects:{}},
+          {text:'قبل از دیده‌شدن ناپدید می‌شوم', next:'END_MASK', effects:{impulsivity:1}}
+        ]
+      },
+      /** 4B **/ 'S4B': {
+        text:`سرنخ‌ها را دنبال می‌کنی و می‌فهمی پول به نسخه‌ای قدیمی از تو مرتبط است.`,
+        choices:[
+          {text:'پول را نگه می‌دارم اما از نو شروع می‌کنم', next:'END_MIRROR', effects:{creativity:1}},
+          {text:'آن را به کسی که نیاز دارد بازمی‌گردانم', next:'END_BURN', effects:{morality:2}}
+        ]
+      },
+      /** 4C **/ 'S4C': {
+        text:`کارهایت نتیجه معکوس می‌دهد؛ دردسر، پلیس، پشیمانی.`,
+        choices:[
+          {text:'فرار می‌کنم', next:'END_GHOST', effects:{impulsivity:2}},
+          {text:'اعتراف و تسلیم', next:'END_MASK', effects:{morality:2}}
+        ]
+      },
+      /** 4D **/ 'S4D': {
+        text:`کامل کنار می‌کشی و می‌روی.`,
+        choices:[{text:'ادامه', next:'END_GHOST', effects:{}}]
+      },
+      /** 4E **/ 'S4E': {
+        text:`پول را تبدیل به پروژه‌ای عام‌المنفعه می‌کنی.`,
+        choices:[{text:'ادامه', next:'END_SPARK', effects:{morality:1}}]
+      },
+      /** 4F **/ 'S4F': {
+        text:`سکه‌ای خرج نمی‌کنی؛ اما همه چیز درونت عوض می‌شود.`,
+        choices:[{text:'ادامه', next:'END_MIRROR', effects:{creativity:1}}]
+      }
+    };
 
-    function renderScene(id){
-      const s=scenes[id];
-      sceneEl.textContent='';
-      choicesEl.innerHTML='';
-      if(s.form){
-        sceneEl.innerHTML=s.text;
-        const form=document.createElement('form');
-        form.id='start-form';
-        form.innerHTML=`<input type="number" id="age" placeholder="سن" required min="10" max="100">\n<select id="gender" required><option value="">جنسیت</option><option value="زن">زن</option><option value="مرد">مرد</option><option value="دیگر">دیگر</option></select>\n<button class="choice" type="submit">شروع</button>`;
-        sceneEl.appendChild(form);
-        form.addEventListener('submit',e=>{e.preventDefault();player.age=form.age.value;player.gender=form.gender.value;renderScene('1');});
-        return;
-      }
-      sceneEl.textContent=s.text;
-      if(s.choices){
-        s.choices.forEach(ch=>{
-          const btn=document.createElement('button');btn.className='choice';btn.textContent=ch.text;btn.onclick=()=>{applyChoice(ch);};choicesEl.appendChild(btn);
-        });
-      }
-      if(id.startsWith('END')){
-        restartBtn.classList.remove('hidden');
-      }
+    const endings = {
+      END_SPARK: 'پایان «جرقه» – تو چیزی آفریدی که جهان دید.',
+      END_MIRROR: 'پایان «آینه» – پولت کم اما خودت بیشتر شدی.',
+      END_MASK: 'پایان «نقاب» – زنده ماندی اما چهره‌ات دیگر همان نیست.',
+      END_GHOST: 'پایان «شبح» – هیچ نگفتی، هیچ نکردی و ناپدید شدی.',
+      END_BURN: 'پایان «سوختن» – پول رفت، ارزش ماند.'
+    };
+
+    /* ===== Rendering Logic ===== */
+    const gameEl = document.getElementById('game');
+
+    function startForm(){
+      gameEl.innerHTML=`<h1>هزارتوی پول</h1>
+        <p>برای شروع، سن و جنسیت خود را وارد کنید.</p>
+        <label>سن:</label>
+        <input id="age" type="number" min="10" max="120"/>
+        <label>جنسیت:</label>
+        <select id="gender">
+          <option value="male">مرد</option>
+          <option value="female">زن</option>
+          <option value="other">دیگر</option>
+        </select>
+        <button onclick="saveStart()">شروع ماجراجویی</button>`;
+    }
+    function saveStart(){
+      const a=document.getElementById('age').value;
+      const g=document.getElementById('gender').value;
+      if(!a){alert('سن را وارد کنید');return;}
+      player.age=a;player.gender=g;
+      renderScene('S1');
     }
 
-    function applyChoice(choice){
-      // update traits
-      Object.keys(choice.effects||{}).forEach(k=>player[k]+=choice.effects[k]);
-      player.choices.push(choice.id);
+    function renderScene(id){
+      const scene=scenes[id];
+      if(!scene){endGame(id);return;}
+      let html=`<p>${scene.text}</p>`;
+      scene.choices.forEach((c,i)=>{
+        html+=`<button onclick="choose('${id}',${i})">${c.text}</button>`;
+      });
+      gameEl.innerHTML=html;
+    }
+
+    function choose(id,index){
+      const choice=scenes[id].choices[index];
+      player.choices.push(choice.text);
+      applyEffects(choice.effects||{});
       renderScene(choice.next);
     }
 
-    restartBtn.onclick=()=>{Object.assign(player,{impulsivity:0,morality:0,creativity:0,choices:[]});restartBtn.classList.add('hidden');renderScene('start');};
+    function applyEffects(effects){
+      for(let k in effects){
+        if(player[k]!==undefined){player[k]+=effects[k];}
+      }
+    }
 
-    // ----- game init -----
-    renderScene('start');
+    function calculatePersona(){
+      const {impulsivity,morality,creativity}=player;
+      const max=Math.max(impulsivity,morality,creativity);
+      if(max===morality) return 'نگهبان';
+      if(max===creativity) return 'آفرینشگر';
+      return 'آتش‌افروز';
+    }
+
+    function endGame(endId){
+      const persona=calculatePersona();
+      const text=`<h1>${endings[endId]}</h1>
+        <p>شخصیت مالی شما: <strong>${persona}</strong></p>
+        <button onclick="restart()">بازی دوباره</button>`;
+      gameEl.innerHTML=text;
+      localStorage.setItem('moneyMazePlayer',JSON.stringify(player));
+    }
+
+    function restart(){
+      player.impulsivity=player.morality=player.creativity=0;
+      player.choices=[];
+      startForm();
+    }
+
+    // init
+    startForm();
   </script>
 </body>
 </html>
