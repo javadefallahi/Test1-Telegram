@@ -1,393 +1,87 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"
-    />
-    <title>MyPet3D – مینی‌اپ</title>
+<head>
+  <meta charset="UTF-8" />
+  <title>سقوط – هزارتوی پول</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Vazirmatn',sans-serif;background:linear-gradient(120deg,#fdfcfb 0%,#e2d1c3 100%);display:flex;justify-content:center;align-items:flex-start;padding:40px 10px;color:#222}
+    #game{width:100%;max-width:640px;background:#fff;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.08);padding:32px;animation:fadeIn .6s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+    h1{font-size:1.5rem;margin-bottom:24px;text-align:center}
+    .scene-text{margin-bottom:24px;line-height:1.8}
+    .choice{display:block;width:100%;background:#ffca28;border:none;border-radius:12px;padding:12px 16px;margin-bottom:12px;font-size:1rem;cursor:pointer;transition:background .2s}
+    .choice:hover{background:#ffc107}
+    .hidden{display:none}
+    #start-form{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+    #start-form input,#start-form select{padding:10px;border:1px solid #ccc;border-radius:8px;font-family:'Vazirmatn',sans-serif}
+    #restart{margin-top:24px;background:#26c6da}
+  </style>
+</head>
+<body>
+  <div id="game">
+    <h1>سقوط – هزارتوی پول</h1>
+    <div id="scene" class="scene-text"></div>
+    <div id="choices"></div>
+    <button id="restart" class="choice hidden">شروع دوباره</button>
+  </div>
 
-    <!-- Google <model-viewer> web component -->
-    <script
-      type="module"
-      src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
-    ></script>
+  <script>
+    // ----- player state -----
+    const player={age:null,gender:null,impulsivity:0,morality:0,creativity:0,choices:[]};
 
-    <style>
-      /* ——— Design tokens ——— */
-      :root {
-        --brand: #6366f1;
-        --bg: #f0f2f7;
-        --card: #ffffff;
-        --radius: 1rem;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-          Arial, sans-serif;
+    // ----- story data (abbreviated for brevity) -----
+    const scenes={
+      start:{text:`سن و جنسیت خود را وارد کنید و آماده شوید…`,form:true},
+      // ... (existing Farsi scenes from previous version go here)
+      END_SPARK:{text:`\n✨ پایان: جرقه!\n\nشما از امکانات خود برای ایجاد ارزش استفاده کردید و دیگران را الهام بخشید.`,choices:[]},
+      END_MIRROR:{text:`\n🔍 پایان: آینه!\n\nپول را کنار گذاشتید اما خود را عمیق‌تر شناختید.`,choices:[]},
+      END_BURN:{text:`\n🔥 پایان: سوختن!\n\nپول رفت ولی درسی ماندگار گرفتید.`,choices:[]},
+      END_GHOST:{text:`\n👻 پایان: روح!\n\nتردید باعث شد هیچ کاری نکنید و فرصت از دست رفت.`,choices:[]},
+      END_MASK:{text:`\n🎭 پایان: نقاب!\n\nظاهر را نجات دادید اما حقیقت را پنهان کردید.`,choices:[]},
+    };
+
+    // ----- engine -----
+    const sceneEl=document.getElementById('scene');
+    const choicesEl=document.getElementById('choices');
+    const restartBtn=document.getElementById('restart');
+
+    function renderScene(id){
+      const s=scenes[id];
+      sceneEl.textContent='';
+      choicesEl.innerHTML='';
+      if(s.form){
+        sceneEl.innerHTML=s.text;
+        const form=document.createElement('form');
+        form.id='start-form';
+        form.innerHTML=`<input type="number" id="age" placeholder="سن" required min="10" max="100">\n<select id="gender" required><option value="">جنسیت</option><option value="زن">زن</option><option value="مرد">مرد</option><option value="دیگر">دیگر</option></select>\n<button class="choice" type="submit">شروع</button>`;
+        sceneEl.appendChild(form);
+        form.addEventListener('submit',e=>{e.preventDefault();player.age=form.age.value;player.gender=form.gender.value;renderScene('1');});
+        return;
       }
-
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg: #1a1a1a;
-          --card: #2a2a2a;
-          --brand: #8183ff;
-          color-scheme: dark;
-          color: #f4f4f4;
-        }
-      }
-
-      /* ——— Reset & helpers ——— */
-      * {
-        box-sizing: border-box;
-        -webkit-tap-highlight-color: transparent;
-      }
-
-      body {
-        margin: 0;
-        background: var(--bg);
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-      }
-
-      /* ——— Layout wrapper ——— */
-      #app {
-        flex: 1 1 auto;
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        padding: 0.75rem;
-      }
-
-      /* ——— 3‑D viewer ——— */
-      #viewer-container {
-        background: var(--card);
-        border-radius: var(--radius);
-        overflow: hidden;
-        position: relative;
-        width: 100%;
-      }
-
-      model-viewer {
-        width: 100%;
-        height: 60vh; /* takes up healthy portion of phone screen */
-        --poster-color: var(--bg);
-      }
-
-      #toyOverlay {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 80px;
-        height: 80px;
-        transform: translate(-50%, -50%);
-        pointer-events: none;
-        display: none;
-      }
-
-      /* ——— Controls ——— */
-      #controls {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-
-      label {
-        font-weight: 600;
-        font-size: 0.9rem;
-      }
-
-      select,
-      input[type="color"],
-      button,
-      a.checkout {
-        font: inherit;
-        border: 2px solid var(--brand);
-        background: var(--card);
-        padding: 0.55rem 0.8rem;
-        border-radius: 0.75rem;
-        cursor: pointer;
-        transition: background 0.2s;
-      }
-
-      button:hover,
-      select:hover,
-      input[type="color"]:hover,
-      a.checkout:hover {
-        background: var(--brand);
-        color: #fff;
-      }
-
-      #toy-store {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-      }
-
-      #toy-store button {
-        flex: 1 1 45%; /* two buttons per row on small screens */
-      }
-
-      a.checkout {
-        text-align: center;
-        text-decoration: none;
-        font-weight: 700;
-        margin-top: 0.5rem;
-      }
-
-      /* ——— Modal ——— */
-      #bmModal {
-        position: fixed;
-        inset: 0;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        background: rgba(0, 0, 0, 0.55);
-        z-index: 1000;
-        padding: 1rem;
-      }
-
-      #bmModal.active {
-        display: flex;
-      }
-
-      .modal-card {
-        background: var(--card);
-        border-radius: var(--radius);
-        max-width: 600px;
-        width: 100%;
-        max-height: 90vh;
-        overflow-y: auto;
-        padding: 1.25rem 1rem;
-        direction: rtl; /* Persian direction */
-      }
-
-      .modal-card h2 {
-        margin-top: 0;
-        font-size: 1.25rem;
-        text-align: center;
-      }
-
-      .modal-card h3 {
-        margin: 0.75rem 0 0.25rem;
-        font-size: 1.05rem;
-        color: var(--brand);
-      }
-
-      .modal-card ul {
-        margin: 0 0 0.75rem 0;
-        padding-right: 1rem;
-        list-style: "• ";
-      }
-
-      .close-btn {
-        display: block;
-        width: 100%;
-        border: none;
-        margin-top: 0.5rem;
-        padding: 0.55rem;
-        background: var(--brand);
-        color: #fff;
-        border-radius: 0.75rem;
-        font-weight: 600;
-        cursor: pointer;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="app">
-      <!-- ——— 3D Viewer ——— -->
-      <div id="viewer-container">
-        <model-viewer
-          id="modelViewer"
-          src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
-          alt="3D character"
-          camera-controls
-          auto-rotate
-          shadow-intensity="1"
-          ar
-        ></model-viewer>
-        <img id="toyOverlay" src="" alt="Toy overlay" />
-      </div>
-
-      <!-- ——— UI Controls ——— -->
-      <div id="controls">
-        <!-- ① Character selection -->
-        <label for="modelSelect">حیوان</label>
-        <select id="modelSelect">
-          <option value="astro">سگ فضانورد</option>
-          <option value="robot">گربه رباتیک</option>
-        </select>
-
-        <!-- ② Background color picker -->
-        <label for="bgPicker">پس‌زمینه</label>
-        <input type="color" id="bgPicker" value="#f0f2f7" />
-
-        <!-- ③ Toy store -->
-        <label>اسباب‌بازی‌ها و پوشاک</label>
-        <div id="toy-store"></div>
-
-        <!-- ④ Checkout -->
-        <a class="checkout" href="https://www.zarinpal.com/" target="_blank"
-          >خرید ↗</a
-        >
-
-        <!-- ⑤ Business Model button -->
-        <button id="bmBtn">مدل کسب‌وکار</button>
-      </div>
-    </div>
-
-    <!-- ——— Modal ——— -->
-    <div id="bmModal">
-      <div class="modal-card">
-        <h2>🌟 مدل کسب‌وکار شهودی «MyPet3D»</h2>
-
-        <h3>🐾 مشکل اصلی</h3>
-        <ul>
-          <li>خرید آنلاین لوازم حیوانات فاقد تعامل ملموس است و دربارهٔ تناسب، راحتی و سبک اطمینان ایجاد نمی‌کند.</li>
-          <li>تجربهٔ عمومی، مشارکت مشتری را کاهش می‌دهد و ارتباط شخصی و احساسی مدنظر صاحبان حیوان را برآورده نمی‌کند.</li>
-          <li>نرخ بازگشت بالا به‌دلیل عدم انطباق سایز، راحتی و انتظارات.</li>
-        </ul>
-
-        <h3>🎯 بخش‌های مشتری</h3>
-        <ul>
-          <li>صاحبان حیوانات خانگی ۱۸ تا ۴۵ سال که حیوان را عضو خانواده می‌دانند و به تجربهٔ خرید شخصی و احساسی اهمیت می‌دهند.</li>
-          <li>نسل Z و هزاره‌ای‌ها که ارزش شخصی‌سازی دیجیتال و خرید تعاملی آنلاین را می‌شناسند.</li>
-          <li>برندهای لوازم حیوانات که به ابزارهای بازاریابی دیجیتال تعاملی نیاز دارند.</li>
-          <li>کاربران تلگرام و مخاطبان موبایل‌محور و آشنا با فناوری.</li>
-        </ul>
-
-        <h3>✨ پیشنهاد ارزش منحصربه‌فرد</h3>
-        <ul>
-          <li>«ارتباط احساسی را تجربه کن: ببین، شخصی‌سازی کن و با اطمینان بخر.»</li>
-          <li>تجربهٔ سه‌بعدی بسیار شخصی و تعاملی که احساسات را درگیر می‌کند.</li>
-          <li>عدم قطعیت خرید را با شبیه‌سازی دقیق تناسب، راحتی و سبک کاهش می‌دهد.</li>
-        </ul>
-
-        <h3>🚀 راهکارهای نوآورانه</h3>
-        <ul>
-          <li>تصویرسازی سه‌بعدی واقع‌گرایانه با امکان «پرؤ مجازی» مبتنی بر اندازهٔ واقعی حیوان.</li>
-          <li>موتور شخصی‌سازی شامل طرح‌ها، رنگ‌ها و نوشته‌های سفارشی.</li>
-          <li>پیشنهادهای هوشمند مبتنی بر هوش مصنوعی طبق پروفایل حیوان و سابقهٔ خرید.</li>
-          <li>شاخص‌های دوام و کیفیت درون پیش‌نمایش محصول.</li>
-        </ul>
-
-        <h3>📢 کانال‌ها</h3>
-        <ul>
-          <li>مینی‌اپ استور تلگرام برای ادغام بی‌دردسر در عادت‌های پیام‌رسانی روزانه.</li>
-          <li>اینستاگرام و تیک‌تاک با استفاده از اینفلوئنسرهای حیوانات.</li>
-          <li>شراکت راهبردی با برندهای لوازم حیوانات و فروشگاه‌های فیزیکی (کد QR).</li>
-          <li>افزونه‌های Shopify و WooCommerce برای توسعهٔ اکوسیستم تجارت الکترونیک.</li>
-        </ul>
-
-        <h3>💰 جریان‌های درآمدی</h3>
-        <ul>
-          <li>کمیسیون از فروش لوازم حیوانات.</li>
-          <li>طرح‌های سه‌بعدی شخصی ممتاز و آیتم‌های مجازی انحصاری.</li>
-          <li>جایگاه‌های تبلیغاتی و تجربه‌های تعاملی برای برندها.</li>
-          <li>اشتراک برای خریداران پرتکرار با دسترسی زودهنگام، تخفیف و پیش‌نمایش اختصاصی.</li>
-        </ul>
-
-        <h3>📌 منابع کلیدی</h3>
-        <ul>
-          <li>زیرساخت پیشرفتهٔ مدل‌سازی سه‌بعدی و واقعیت افزوده.</li>
-          <li>الگوریتم‌های هوش مصنوعی برای شخصی‌سازی و بینش مشتری.</li>
-          <li>اتصال به درگاه پرداخت محلی (زرین‌پال) برای تراکنش بدون اصطکاک.</li>
-          <li>تیم فناوری و طراحی ماهر برای نوآوری و پشتیبانی مداوم.</li>
-        </ul>
-
-        <h3>📊 شاخص‌های کلیدی</h3>
-        <ul>
-          <li>نرخ تبدیل پیش‌نمایش تعاملی به خرید.</li>
-          <li>مدت و دفعات تعامل مشتری.</li>
-          <li>نرخ بازگشت سفارش‌ها و نتایج نظرسنجی رضایت مشتری.</li>
-          <li>نرخ اشتراک‌گذاری در شبکه‌های اجتماعی و حجم محتوای تولیدشده توسط کاربر.</li>
-        </ul>
-
-        <h3>🌟 برتری ناعادلانه</h3>
-        <ul>
-          <li>برتری پیشگام در ارائهٔ تجربه سه‌بعدی کاملاً تعاملی و احساسی در مینی‌اپ تلگرام.</li>
-          <li>ادغام عمیق شخصی‌سازی و جذابیت احساسی برای ایجاد پیوند قوی با مشتری.</li>
-          <li>راهکارهای پرداخت بومی و برندینگ متناسب با فرهنگ بازار ایران.</li>
-        </ul>
-
-        <button class="close-btn" id="closeModal">بستن</button>
-      </div>
-    </div>
-
-    <script>
-      /* ——— Data ——— */
-      const MODELS = {
-        astro: "https://modelviewer.dev/shared-assets/models/Astronaut.glb",
-        robot: "https://modelviewer.dev/shared-assets/models/RobotExpressive.glb",
-      };
-
-      const TOYS = [
-        {
-          id: "star",
-          name: "ستاره طلایی",
-          preview:
-            "https://raw.githubusercontent.com/iconic/open-iconic/master/png/star-8x.png",
-        },
-        {
-          id: "ball",
-          name: "توپ فنری",
-          preview: "https://i.imgur.com/NtWPrPs.png",
-        },
-        {
-          id: "hat",
-          name: "کلاه جادوگر",
-          preview: "https://i.imgur.com/xyobkOD.png",
-        },
-      ];
-
-      /* ——— Element refs ——— */
-      const modelViewer = document.getElementById("modelViewer");
-      const modelSelect = document.getElementById("modelSelect");
-      const bgPicker = document.getElementById("bgPicker");
-      const viewerContainer = document.getElementById("viewer-container");
-      const toyStore = document.getElementById("toy-store");
-      const toyOverlay = document.getElementById("toyOverlay");
-      const bmModal = document.getElementById("bmModal");
-      const bmBtn = document.getElementById("bmBtn");
-      const closeModal = document.getElementById("closeModal");
-
-      /* ——— Init toy buttons ——— */
-      TOYS.forEach((toy) => {
-        const btn = document.createElement("button");
-        btn.textContent = toy.name;
-        btn.addEventListener("click", () => {
-          toyOverlay.src = toy.preview;
-          toyOverlay.style.display = "block";
+      sceneEl.textContent=s.text;
+      if(s.choices){
+        s.choices.forEach(ch=>{
+          const btn=document.createElement('button');btn.className='choice';btn.textContent=ch.text;btn.onclick=()=>{applyChoice(ch);};choicesEl.appendChild(btn);
         });
-        toyStore.appendChild(btn);
-      });
+      }
+      if(id.startsWith('END')){
+        restartBtn.classList.remove('hidden');
+      }
+    }
 
-      /* ——— Listeners ——— */
-      modelSelect.addEventListener("change", (e) => {
-        const key = e.target.value;
-        modelViewer.src = MODELS[key];
-      });
+    function applyChoice(choice){
+      // update traits
+      Object.keys(choice.effects||{}).forEach(k=>player[k]+=choice.effects[k]);
+      player.choices.push(choice.id);
+      renderScene(choice.next);
+    }
 
-      bgPicker.addEventListener("input", (e) => {
-        viewerContainer.style.background = e.target.value;
-      });
+    restartBtn.onclick=()=>{Object.assign(player,{impulsivity:0,morality:0,creativity:0,choices:[]});restartBtn.classList.add('hidden');renderScene('start');};
 
-      bmBtn.addEventListener("click", () => {
-        bmModal.classList.add("active");
-        document.body.style.overflow = "hidden";
-      });
-
-      closeModal.addEventListener("click", () => {
-        bmModal.classList.remove("active");
-        document.body.style.overflow = "auto";
-      });
-
-      // Close modal when tapping outside card
-      bmModal.addEventListener("click", (e) => {
-        if (e.target === bmModal) {
-          closeModal.click();
-        }
-      });
-    </script>
-  </body>
+    // ----- game init -----
+    renderScene('start');
+  </script>
+</body>
 </html>
