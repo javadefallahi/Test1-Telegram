@@ -1,253 +1,295 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <title>سقوط – هزارتوی پول</title>
-  <style>
-    /* Font (Koodak – may rely on local install) */
-    @font-face {
-      font-family: 'BKoodak';
-      src: local('B Koodak'), local('BKoodak');
-    }
-    body {
-      font-family: 'BKoodak', Tahoma, sans-serif;
-      background: linear-gradient(135deg,#fdfcfb 0%,#e7e4df 100%);
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      padding: 2rem 1rem;
-      color:#222;
-    }
-    #game {
-      background:#fff;
-      width:100%;
-      max-width:680px;
-      box-shadow:0 8px 24px rgba(0,0,0,.08);
-      border-radius:16px;
-      padding:2rem;
-      animation:fadeIn .6s ease;
-    }
-    h1{font-size:1.4rem;margin-bottom:1rem;text-align:center}
-    p{margin-bottom:1.2rem;line-height:2rem}
-    button{
-      width:100%;
-      margin:.4rem 0;
-      padding:.9rem 1rem;
-      font-family:'BKoodak',Tahoma,sans-serif;
-      font-size:1rem;
-      border:none;
-      border-radius:12px;
-      background:#ffce00;
-      color:#333;
-      cursor:pointer;
-      transition:all .2s;
-    }
-    button:hover{box-shadow:0 4px 8px rgba(0,0,0,.15)}
-    input,select{
-      width:100%;
-      padding:.8rem 1rem;
-      margin-bottom:1rem;
-      border-radius:10px;
-      border:1px solid #ccc;
-      font-family:'BKoodak',Tahoma,sans-serif;
-    }
-    @keyframes fadeIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InsightLink - Get Paid for Your Opinions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
 </head>
-<body>
-  <div id="game"></div>
-  <script>
-    /* ===== Data Structures ===== */
-    const player = {
-      age:null,
-      gender:null,
-      impulsivity:0,
-      morality:0,
-      creativity:0,
-      choices:[]
-    };
+<body class="bg-gray-50 text-gray-800">
 
-    const scenes = {
-      /** 1 **/ 'S1': {
-        text:`در آپارتمانی خالی از خواب بیدار می‌شوی؛ چمدانی حاوی یک میلیون ریال کنارت است. هیچ یادداشتی نیست.`,
-        choices:[
-          {text:'چمدان را برداشته و فوراً می‌روم', next:'S2C', effects:{impulsivity:2}},
-          {text:'می‌مانم و صبر می‌کنم؛ شاید کسی بیاید', next:'S2A', effects:{morality:1}},
-          {text:'بدون برداشتن پول برای کمک می‌روم', next:'S2B', effects:{creativity:1}}
-        ]
-      },
-      /** 2A **/ 'S2A': {
-        text:`چند ساعت می‌گذرد و خبری نیست. گرسنگی سراغت آمده است.`,
-        choices:[
-          {text:'فقط با یک اسکناس بیرون می‌روم', next:'S3C', effects:{morality:1}},
-          {text:'همه پول را برمی‌دارم؛ کافی صبر کردم', next:'S3A', effects:{impulsivity:1}},
-          {text:'حس می‌کنم پول نفرین‌شده است و آن را می‌سوزانم', next:'S3B', effects:{creativity:1}}
-        ]
-      },
-      /** 2B **/ 'S2B': {
-        text:`به کیوسک سر کوچه می‌رسی. فروشنده می‌گوید: "نگه‌اش دار ولی عاقل باش."`,
-        choices:[
-          {text:'برمی‌گردم و چمدان را مخفی می‌کنم', next:'S3B', effects:{impulsivity:1}},
-          {text:'نیمی از پول را برمی‌دارم', next:'S3A', effects:{morality:1}},
-          {text:'ناشناس به پلیس گزارش می‌دهم', next:'S3D', effects:{morality:2}}
-        ]
-      },
-      /** 2C **/ 'S2C': {
-        text:`به خیابان می‌آیی. پول در کوله است و عرق بر پیشانی‌ات.`,
-        choices:[
-          {text:'کالا می‌خرم و در خیابان می‌فروشم', next:'S3A', effects:{creativity:2}},
-          {text:'مقداری را بین غریبه‌ها پخش می‌کنم', next:'S3C', effects:{morality:2}},
-          {text:'هتل می‌گیرم و پنهان می‌شوم', next:'S3D', effects:{impulsivity:1}}
-        ]
-      },
-      /** 3A **/ 'S3A': {
-        text:`تصمیم می‌گیری با پول کاری کنی: شاید کسب‌وکاری کوچک یا خرید خوش‌شانس.`,
-        choices:[
-          {text:'کسب‌وکار خیابانی راه‌اندازی می‌کنم', next:'S4A', effects:{creativity:2}},
-          {text:'همه‌اش را قمار می‌کنم', next:'S4C', effects:{impulsivity:3}},
-          {text:'چند نفر را برای ساخت چیزی استخدام می‌کنم', next:'S4B', effects:{morality:1, creativity:1}}
-        ]
-      },
-      /** 3B **/ 'S3B': {
-        text:`پول را پنهان یا نابود می‌کنی؛ بوی خطر می‌دهد.`,
-        choices:[
-          {text:'آرام آرام می‌سوزانمش', next:'S4D', effects:{morality:2}},
-          {text:'با یادداشتی در خیابان رها می‌کنم', next:'S4C', effects:{morality:1, creativity:1}},
-          {text:'به خیریه ناشناس اهدا می‌کنم', next:'S4E', effects:{morality:3}}
-        ]
-      },
-      /** 3C **/ 'S3C': {
-        text:`پول را میان مردم پخش می‌کنی و واکنش‌ها را ثبت می‌کنی.`,
-        choices:[
-          {text:'وبلاگ تجربیاتم را می‌نویسم', next:'S4E', effects:{creativity:2}},
-          {text:'ویدئو مستند می‌گیرم', next:'S4F', effects:{creativity:2}},
-          {text:'افرادی را که پول دادم دنبال می‌کنم', next:'S4A', effects:{morality:1, creativity:1}}
-        ]
-      },
-      /** 3D **/ 'S3D': {
-        text:`در اتاق هتل پنهان می‌شوی. افکار متناقض ذهنت را پر می‌کند.`,
-        choices:[
-          {text:'فراموش می‌کنم و عادی زندگی می‌کنم', next:'S4D', effects:{morality:1}},
-          {text:'۲۴ ساعت به خودم猶 فرصت می‌دهم', next:'S4F', effects:{impulsivity:1}},
-          {text:'دنبال منبع پول می‌گردم', next:'S4B', effects:{creativity:2}}
-        ]
-      },
-      /** 4A **/ 'S4A': {
-        text:`اقدام تو نتیجه می‌دهد؛ مردم توجه نشان می‌دهند.`,
-        choices:[
-          {text:'ادامه می‌دهم و چیزی واقعی می‌سازم', next:'END_SPARK', effects:{}},
-          {text:'قبل از دیده‌شدن ناپدید می‌شوم', next:'END_MASK', effects:{impulsivity:1}}
-        ]
-      },
-      /** 4B **/ 'S4B': {
-        text:`سرنخ‌ها را دنبال می‌کنی و می‌فهمی پول به نسخه‌ای قدیمی از تو مرتبط است.`,
-        choices:[
-          {text:'پول را نگه می‌دارم اما از نو شروع می‌کنم', next:'END_MIRROR', effects:{creativity:1}},
-          {text:'آن را به کسی که نیاز دارد بازمی‌گردانم', next:'END_BURN', effects:{morality:2}}
-        ]
-      },
-      /** 4C **/ 'S4C': {
-        text:`کارهایت نتیجه معکوس می‌دهد؛ دردسر، پلیس، پشیمانی.`,
-        choices:[
-          {text:'فرار می‌کنم', next:'END_GHOST', effects:{impulsivity:2}},
-          {text:'اعتراف و تسلیم', next:'END_MASK', effects:{morality:2}}
-        ]
-      },
-      /** 4D **/ 'S4D': {
-        text:`کامل کنار می‌کشی و می‌روی.`,
-        choices:[{text:'ادامه', next:'END_GHOST', effects:{}}]
-      },
-      /** 4E **/ 'S4E': {
-        text:`پول را تبدیل به پروژه‌ای عام‌المنفعه می‌کنی.`,
-        choices:[{text:'ادامه', next:'END_SPARK', effects:{morality:1}}]
-      },
-      /** 4F **/ 'S4F': {
-        text:`سکه‌ای خرج نمی‌کنی؛ اما همه چیز درونت عوض می‌شود.`,
-        choices:[{text:'ادامه', next:'END_MIRROR', effects:{creativity:1}}]
-      }
-    };
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-900">InsightLink</h1>
+            <nav class="hidden md:flex items-center space-x-6">
+                <a href="#features" class="text-gray-600 hover:text-indigo-600">How It Works</a>
+                <a href="#surveys" class="text-gray-600 hover:text-indigo-600">Available Surveys</a>
+                <a href="#dashboard" class="text-gray-600 hover:text-indigo-600">Dashboard</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600">For Employers</a>
+            </nav>
+            <div class="flex items-center space-x-4">
+                <button id="loginBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300">Login / Sign Up</button>
+            </div>
+        </div>
+    </header>
 
-    const endings = {
-      END_SPARK: 'پایان «جرقه» – تو چیزی آفریدی که جهان دید.',
-      END_MIRROR: 'پایان «آینه» – پولت کم اما خودت بیشتر شدی.',
-      END_MASK: 'پایان «نقاب» – زنده ماندی اما چهره‌ات دیگر همان نیست.',
-      END_GHOST: 'پایان «شبح» – هیچ نگفتی، هیچ نکردی و ناپدید شدی.',
-      END_BURN: 'پایان «سوختن» – پول رفت، ارزش ماند.'
-    };
+    <main class="container mx-auto px-6 py-12">
 
-    /* ===== Rendering Logic ===== */
-    const gameEl = document.getElementById('game');
+        <!-- Hero Section -->
+        <section class="text-center py-16">
+            <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">Your Opinion is Valuable. Get Paid for It.</h2>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto mb-8">Participate in engaging, story-based questionnaires from leading companies and earn rewards for your insights.</p>
+            <a href="#surveys" class="bg-indigo-600 text-white px-8 py-3 rounded-full font-bold text-lg hover:bg-indigo-700 transition duration-300">Start Earning Now</a>
+        </section>
 
-    function startForm(){
-      gameEl.innerHTML=`<h1>هزارتوی پول</h1>
-        <p>برای شروع، سن و جنسیت خود را وارد کنید.</p>
-        <label>سن:</label>
-        <input id="age" type="number" min="10" max="120"/>
-        <label>جنسیت:</label>
-        <select id="gender">
-          <option value="male">مرد</option>
-          <option value="female">زن</option>
-          <option value="other">دیگر</option>
-        </select>
-        <button onclick="saveStart()">شروع ماجراجویی</button>`;
-    }
-    function saveStart(){
-      const a=document.getElementById('age').value;
-      const g=document.getElementById('gender').value;
-      if(!a){alert('سن را وارد کنید');return;}
-      player.age=a;player.gender=g;
-      renderScene('S1');
-    }
+        <!-- How It Works Section -->
+        <section id="features" class="py-16 bg-white rounded-xl shadow-md">
+            <h3 class="text-3xl font-bold text-center text-gray-900 mb-12">How InsightLink Works</h3>
+            <div class="grid md:grid-cols-3 gap-8 text-center px-8">
+                <div class="feature-item">
+                    <div class="bg-indigo-100 text-indigo-600 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    </div>
+                    <h4 class="text-xl font-semibold mb-2">1. Create Your Profile</h4>
+                    <p class="text-gray-600">Sign up and complete your profile. We use this to match you with relevant surveys.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="bg-green-100 text-green-600 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                    </div>
+                    <h4 class="text-xl font-semibold mb-2">2. Take Gamified Surveys</h4>
+                    <p class="text-gray-600">Answer fun, story-based questionnaires that take 10-15 minutes to complete.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="bg-yellow-100 text-yellow-600 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    </div>
+                    <h4 class="text-xl font-semibold mb-2">3. Get Paid</h4>
+                    <p class="text-gray-600">Earn from the employer-funded pool for each valid survey you complete.</p>
+                </div>
+            </div>
+        </section>
 
-    function renderScene(id){
-      const scene=scenes[id];
-      if(!scene){endGame(id);return;}
-      let html=`<p>${scene.text}</p>`;
-      scene.choices.forEach((c,i)=>{
-        html+=`<button onclick="choose('${id}',${i})">${c.text}</button>`;
-      });
-      gameEl.innerHTML=html;
-    }
+        <!-- Available Surveys Section -->
+        <section id="surveys" class="py-16">
+            <h3 class="text-3xl font-bold text-center text-gray-900 mb-12">Available Surveys</h3>
+            <div id="survey-list" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Survey cards will be dynamically inserted here -->
+            </div>
+        </section>
 
-    function choose(id,index){
-      const choice=scenes[id].choices[index];
-      player.choices.push(choice.text);
-      applyEffects(choice.effects||{});
-      renderScene(choice.next);
-    }
+        <!-- User Dashboard Section (hidden by default) -->
+        <section id="dashboard" class="py-16 bg-white rounded-xl shadow-md hidden">
+             <h3 class="text-3xl font-bold text-center text-gray-900 mb-12">Your Dashboard</h3>
+             <div class="text-center">
+                 <h4 class="text-xl font-semibold">Welcome, <span id="username">User</span>!</h4>
+                 <p class="text-gray-600 mt-2">Here's a summary of your activity.</p>
+                 <div class="mt-8 flex justify-center space-x-8">
+                     <div>
+                         <p class="text-4xl font-bold text-indigo-600" id="total-earnings">0.00 KT</p>
+                         <p class="text-gray-500">Total Earnings</p>
+                     </div>
+                     <div>
+                         <p class="text-4xl font-bold text-green-600" id="surveys-completed">0</p>
+                         <p class="text-gray-500">Surveys Completed</p>
+                     </div>
+                 </div>
+                 <button id="logoutBtn" class="mt-8 bg-red-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-600 transition duration-300">Logout</button>
+             </div>
+        </section>
 
-    function applyEffects(effects){
-      for(let k in effects){
-        if(player[k]!==undefined){player[k]+=effects[k];}
-      }
-    }
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-16">
+        <div class="container mx-auto px-6 py-8 text-center">
+            <p>&copy; 2024 InsightLink. All rights reserved.</p>
+            <div class="flex justify-center space-x-6 mt-4">
+                <a href="#" class="hover:text-indigo-400">Privacy Policy</a>
+                <a href="#" class="hover:text-indigo-400">Terms of Service</a>
+                <a href="#" class="hover:text-indigo-400">Contact Us</a>
+            </div>
+        </div>
+    </footer>
 
-    function calculatePersona(){
-      const {impulsivity,morality,creativity}=player;
-      const max=Math.max(impulsivity,morality,creativity);
-      if(max===morality) return 'نگهبان';
-      if(max===creativity) return 'آفرینشگر';
-      return 'آتش‌افروز';
-    }
+    <!-- Survey Modal -->
+    <div id="surveyModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full">
+            <div id="survey-content">
+                <!-- Gamified survey content will be loaded here -->
+            </div>
+            <button id="closeModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+    </div>
 
-    function endGame(endId){
-      const persona=calculatePersona();
-      const text=`<h1>${endings[endId]}</h1>
-        <p>شخصیت مالی شما: <strong>${persona}</strong></p>
-        <button onclick="restart()">بازی دوباره</button>`;
-      gameEl.innerHTML=text;
-      localStorage.setItem('moneyMazePlayer',JSON.stringify(player));
-    }
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const surveyList = document.getElementById('survey-list');
+            const loginBtn = document.getElementById('loginBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const dashboard = document.getElementById('dashboard');
+            const mainContent = document.querySelector('main');
+            const surveyModal = document.getElementById('surveyModal');
+            const closeModal = document.getElementById('closeModal');
+            const surveyContent = document.getElementById('survey-content');
+            
+            let isLoggedIn = false;
+            let user = {
+                name: 'Alex',
+                earnings: 0,
+                surveysCompleted: 0
+            };
 
-    function restart(){
-      player.impulsivity=player.morality=player.creativity=0;
-      player.choices=[];
-      startForm();
-    }
+            // Mock survey data
+            const surveys = [
+                { id: 1, title: 'The Future of Remote Work', company: 'Innovate Corp', reward: '10 KT', time: 12, story: 'You are a manager in the year 2035. Your task is to design the perfect hybrid work model for your team of space colonists.' },
+                { id: 2, title: 'Snack Preferences Adventure', company: 'Crunchy Co.', reward: '8 KT', time: 10, story: 'Embark on a culinary quest! As a royal food taster, you must choose the snacks that will please the king.' },
+                { id: 3, title: 'Eco-Friendly Shopping Habits', company: 'GreenLeaf Inc.', reward: '12 KT', time: 15, story: 'You are an eco-warrior saving the planet. Your shopping choices will determine the fate of a local forest.' },
+                { id: 4, title: 'Mobile Gaming Experience', company: 'PixelPlay', reward: '15 KT', time: 18, story: 'As a game developer, your feedback will help craft the next viral mobile game. What features will you include?' }
+            ];
 
-    // init
-    startForm();
-  </script>
+            function renderSurveys() {
+                surveyList.innerHTML = '';
+                surveys.forEach(survey => {
+                    const surveyCard = document.createElement('div');
+                    surveyCard.className = 'bg-white p-6 rounded-lg shadow-md card-hover transition-all duration-300';
+                    surveyCard.innerHTML = `
+                        <h4 class="text-xl font-bold text-gray-900">${survey.title}</h4>
+                        <p class="text-gray-500 mt-1">by ${survey.company}</p>
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-green-600 font-semibold">${survey.reward}</span>
+                            <span class="text-gray-500">${survey.time} min</span>
+                        </div>
+                        <button data-id="${survey.id}" class="start-survey-btn mt-6 w-full bg-indigo-500 text-white py-2 rounded-lg font-semibold hover:bg-indigo-600 transition duration-300">Start Survey</button>
+                    `;
+                    surveyList.appendChild(surveyCard);
+                });
+            }
+
+            function updateDashboard() {
+                if (isLoggedIn) {
+                    document.getElementById('username').textContent = user.name;
+                    document.getElementById('total-earnings').textContent = `${user.earnings.toFixed(2)} KT`;
+                    document.getElementById('surveys-completed').textContent = user.surveysCompleted;
+                    dashboard.classList.remove('hidden');
+                } else {
+                    dashboard.classList.add('hidden');
+                }
+            }
+            
+            function handleLogin() {
+                isLoggedIn = true;
+                loginBtn.textContent = 'My Dashboard';
+                loginBtn.onclick = () => document.getElementById('dashboard').scrollIntoView({ behavior: 'smooth' });
+                updateDashboard();
+                // In a real app, this would involve a form and API call
+                alert('Login successful! You can now see your dashboard and take surveys.');
+            }
+
+            function handleLogout() {
+                isLoggedIn = false;
+                loginBtn.textContent = 'Login / Sign Up';
+                loginBtn.onclick = handleLogin;
+                updateDashboard();
+                alert('You have been logged out.');
+            }
+
+            function startSurvey(surveyId) {
+                if (!isLoggedIn) {
+                    alert('Please log in to start a survey.');
+                    return;
+                }
+                const survey = surveys.find(s => s.id === surveyId);
+                
+                // Gamified Survey Content Generation
+                surveyContent.innerHTML = `
+                    <h3 class="text-2xl font-bold mb-2">${survey.title}</h3>
+                    <p class="text-gray-600 mb-4 italic">"${survey.story}"</p>
+                    <div class="space-y-4">
+                        <p class="font-semibold">Question 1: Based on the story, what is your first decision?</p>
+                        <div>
+                            <label class="flex items-center p-3 rounded-lg border hover:bg-gray-100 cursor-pointer">
+                                <input type="radio" name="q1" class="form-radio h-5 w-5 text-indigo-600">
+                                <span class="ml-3 text-gray-700">Option A: The safe and predictable choice.</span>
+                            </label>
+                        </div>
+                        <div>
+                           <label class="flex items-center p-3 rounded-lg border hover:bg-gray-100 cursor-pointer">
+                                <input type="radio" name="q1" class="form-radio h-5 w-5 text-indigo-600">
+                                <span class="ml-3 text-gray-700">Option B: The risky but potentially rewarding choice.</span>
+                            </label>
+                        </div>
+                        <!-- This is a "bate" or quality check question -->
+                        <p class="font-semibold pt-4">Please select the second option to continue.</p>
+                         <div>
+                           <label class="flex items-center p-3 rounded-lg border hover:bg-gray-100 cursor-pointer">
+                                <input type="radio" name="bate1" class="form-radio h-5 w-5 text-indigo-600">
+                                <span class="ml-3 text-gray-700">First option</span>
+                            </label>
+                        </div>
+                        <div>
+                           <label class="flex items-center p-3 rounded-lg border hover:bg-gray-100 cursor-pointer">
+                                <input type="radio" name="bate1" class="form-radio h-5 w-5 text-indigo-600">
+                                <span class="ml-3 text-gray-700">Second option</span>
+                            </label>
+                        </div>
+                    </div>
+                    <button id="submitSurveyBtn" data-survey-id="${survey.id}" class="mt-6 w-full bg-green-500 text-white py-3 rounded-lg font-bold hover:bg-green-600 transition duration-300">Submit Answers</button>
+                `;
+                surveyModal.classList.remove('hidden');
+            }
+
+            function submitSurvey(surveyId) {
+                const survey = surveys.find(s => s.id === surveyId);
+                const reward = parseFloat(survey.reward);
+
+                // Simple validation for the "bate" question
+                const bateAnswer = document.querySelector('input[name="bate1"]:checked');
+                if (!bateAnswer || bateAnswer.nextElementSibling.textContent.trim() !== 'Second option') {
+                    alert('Quality check failed. Please answer carefully. No reward will be given.');
+                    surveyModal.classList.add('hidden');
+                    return;
+                }
+
+                user.earnings += reward;
+                user.surveysCompleted += 1;
+                
+                updateDashboard();
+                surveyModal.classList.add('hidden');
+                alert(`Survey completed! You've earned ${survey.reward}.`);
+            }
+
+            // Event Listeners
+            loginBtn.addEventListener('click', handleLogin);
+            logoutBtn.addEventListener('click', handleLogout);
+            closeModal.addEventListener('click', () => surveyModal.classList.add('hidden'));
+
+            surveyList.addEventListener('click', (e) => {
+                if (e.target.classList.contains('start-survey-btn')) {
+                    const surveyId = parseInt(e.target.getAttribute('data-id'));
+                    startSurvey(surveyId);
+                }
+            });
+
+            surveyModal.addEventListener('click', (e) => {
+                if (e.target.id === 'submitSurveyBtn') {
+                    const surveyId = parseInt(e.target.getAttribute('data-survey-id'));
+                    submitSurvey(surveyId);
+                }
+            });
+
+
+            // Initial render
+            renderSurveys();
+            updateDashboard();
+        });
+    </script>
+
 </body>
 </html>
